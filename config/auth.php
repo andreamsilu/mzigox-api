@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Modules\Users\Models\User;
 
 return [
 
@@ -40,6 +40,10 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'sanctum' => [
+            'driver' => 'sanctum',
             'provider' => 'users',
         ],
     ],
