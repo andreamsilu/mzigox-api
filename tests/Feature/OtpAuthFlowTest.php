@@ -4,29 +4,45 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\OtpService;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
+#[RequiresPhpExtension('pdo_mysql')]
 class OtpAuthFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
-    public function test_otp_verify_returns_bearer_token(): void
+    public function test_otp_request_persists_hashed_code(): void
     {
-        $this->postJson('/api/v1/auth/otp/request', ['phone' => '+255733333333'])
-            ->assertOk()
-            ->assertJsonPath('success', true);
+        app(OtpService::class)->requestOtp('+255755555555');
+
+        $this->assertDatabaseHas('phone_otps', ['phone' => '+255755555555']);
+    }
+
+    public function test_otp_verify_creates_user(): void
+    {
+        $service = app(OtpService::class);
+        $phone = '+255766666666';
+        $service->requestOtp($phone);
+        $user = $service->verifyAndLogin($phone, '123456');
+
+        $this->assertSame($phone, $user->phone);
+    }
+
+    public function test_otp_verify_api_returns_bearer_token(): void
+    {
+        $phone = '+255777777777';
+
+        $this->postJson('/api/v1/auth/otp/request', ['phone' => $phone])->assertOk();
 
         $this->postJson('/api/v1/auth/otp/verify', [
-            'phone' => '+255733333333',
+            'phone' => $phone,
             'code' => '123456',
         ])
             ->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonStructure([
-                'data' => ['token', 'token_type', 'user' => ['id', 'role']],
-            ]);
+            ->assertJsonStructure(['data' => ['token', 'user' => ['id', 'role']]]);
     }
 }

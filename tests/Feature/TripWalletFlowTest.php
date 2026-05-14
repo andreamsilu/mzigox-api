@@ -17,14 +17,15 @@ use App\Modules\Users\Models\User;
 use App\Modules\Vehicles\Models\Vehicle;
 use App\Modules\Vehicles\Models\VehicleType;
 use App\Modules\Wallets\Models\Wallet;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
+#[RequiresPhpExtension('pdo_mysql')]
 class TripWalletFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_commission_reserved_on_trip_start_and_finalized_on_delivery(): void
     {
@@ -87,6 +88,8 @@ class TripWalletFlowTest extends TestCase
         $trip->vehicle_id = $vehicle->id;
         $trip->trip_status = TripStatus::CargoLoaded;
         $trip->save();
+
+        Sanctum::actingAs($driverUser);
 
         $this->patchJson("/api/v1/trips/{$trip->id}/status", [
             'status' => TripStatus::TripStarted->value,

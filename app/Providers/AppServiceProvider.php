@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Modules\Trips\Models\Trip;
+use App\Modules\Users\Models\User;
 use App\Policies\TripPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -23,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::enforceMorphMap([
             'trip' => Trip::class,
+            'user' => User::class,
         ]);
 
         Gate::policy(Trip::class, TripPolicy::class);

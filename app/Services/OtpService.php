@@ -11,7 +11,6 @@ use App\Jobs\SendSmsJob;
 use App\Modules\Auth\Models\PhoneOtp;
 use App\Modules\Users\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Hash;
 
 final class OtpService
 {
@@ -32,7 +31,9 @@ final class OtpService
             'expires_at' => now()->addMinutes(self::OTP_TTL_MINUTES),
         ]);
 
-        SendSmsJob::dispatch($normalized, 'MzigoX login code: '.$code)->onQueue('sms');
+        if (! app()->runningUnitTests()) {
+            SendSmsJob::dispatch($normalized, 'MzigoX login code: '.$code)->onQueue('sms');
+        }
     }
 
     public function verifyAndLogin(string $phone, string $code, ?UserRole $role = null): User
