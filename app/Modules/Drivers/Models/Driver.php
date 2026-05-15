@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Drivers\Models;
 
+use App\Enums\DriverPresence;
 use App\Enums\DriverStatus;
 use App\Modules\Users\Models\User;
 use App\Modules\Vehicles\Models\Vehicle;
@@ -23,6 +24,7 @@ class Driver extends Model
         'rating_avg',
         'rating_count',
         'is_online',
+        'presence',
         'last_online_at',
         'last_latitude',
         'last_longitude',
@@ -39,6 +41,7 @@ class Driver extends Model
     {
         return [
             'status' => DriverStatus::class,
+            'presence' => DriverPresence::class,
             'is_online' => 'boolean',
             'last_online_at' => 'datetime',
             'last_location_at' => 'datetime',

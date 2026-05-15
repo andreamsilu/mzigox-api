@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "drivers": {
+      "$driverId": {
+        ".read": "auth != null && (auth.token.role === 'admin' || auth.token.driver_id === $driverId)",
+        ".write": "auth != null && auth.token.role === 'driver' && auth.token.driver_id === $driverId",
+        "lat": { ".validate": "newData.isNumber()" },
+        "lng": { ".validate": "newData.isNumber()" },
+        "presence": { ".validate": "newData.isString() && (newData.val() === 'ONLINE' || newData.val() === 'OFFLINE' || newData.val() === 'BUSY')" },
+        "vehicle_type": { ".validate": "newData.isString()" },
+        "updated_at": { ".validate": "newData.isString()" },
+        "$other": { ".validate": false }
+      }
+    },
+    "trips": {
+      "$tripId": {
+        ".read": "auth != null && (auth.token.role === 'admin' || auth.token.trip_id === $tripId || auth.token.customer_trip_ids[$tripId] === true)",
+        ".write": "auth != null && (auth.token.role === 'admin' || auth.token.driver_id != null)",
+        "status": { ".validate": "newData.isString()" },
+        "eta": { ".validate": "!newData.exists() || newData.isNumber() || newData.isString()" },
+        "driver_location": {
+          "lat": { ".validate": "newData.isNumber()" },
+          "lng": { ".validate": "newData.isNumber()" }
+        },
+        "progress": { ".validate": "!newData.exists() || newData.isString()" },
+        "updated_at": { ".validate": "newData.isString()" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

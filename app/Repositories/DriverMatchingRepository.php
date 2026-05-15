@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Enums\DriverPresence;
 use App\Enums\DriverStatus;
 use App\Modules\Drivers\Models\Driver;
 use App\Modules\Vehicles\Models\VehicleType;
@@ -35,7 +36,7 @@ final class DriverMatchingRepository
                 $join->on('vehicles.driver_id', '=', 'drivers.id')
                     ->where('vehicles.vehicle_type_id', '=', $vehicleType->id);
             })
-            ->where('drivers.is_online', true)
+            ->where('drivers.presence', DriverPresence::Online)
             ->where('drivers.status', DriverStatus::Approved)
             ->whereRaw('(wallets.balance_minor - wallets.reserved_balance_minor) >= ?', [$minWalletAvailableMinor])
             ->whereNotNull('drivers.last_latitude')

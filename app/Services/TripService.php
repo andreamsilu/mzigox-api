@@ -10,8 +10,8 @@ use App\Enums\TripPaymentStatus;
 use App\Enums\TripStatus;
 use App\Exceptions\DomainException;
 use App\Jobs\FindDriversForTripJob;
-use App\Jobs\SyncDriverPresenceToFirebaseJob;
 use App\Jobs\SyncTripToFirebaseJob;
+use App\Modules\Drivers\Models\Driver;
 use App\Modules\Trips\Models\Trip;
 use App\Modules\Trips\Models\TripStatusLog;
 use App\Modules\Users\Models\User;
@@ -24,6 +24,7 @@ final class TripService
         private readonly TripStateValidator $stateValidator,
         private readonly CommissionCalculator $commissionCalculator,
         private readonly WalletService $walletService,
+        private readonly DriverPresenceService $presenceService,
     ) {}
 
     public function createTrip(User $customer, array $payload): Trip
@@ -93,8 +94,9 @@ final class TripService
 
             $this->logStatusChange($trip, TripStatus::Requested, TripStatus::Accepted, $driverUser->id);
 
+            $this->presenceService->markBusy($driver);
+
             SyncTripToFirebaseJob::dispatch($trip->id)->onQueue('firebase');
-            SyncDriverPresenceToFirebaseJob::dispatch($driver->id)->onQueue('firebase');
 
             return $trip->fresh();
         });
@@ -121,6 +123,7 @@ final class TripService
 
             if ($to === TripStatus::Delivered) {
                 $this->finalizeTripSuccess($trip);
+                $this->releaseDriverPresence($trip);
             }
 
             $trip->trip_status = $to;
@@ -163,6 +166,8 @@ final class TripService
 
             $this->logStatusChange($trip, $from, TripStatus::Cancelled, $actor->id, ['reason' => $reason]);
 
+            $this->releaseDriverPresence($trip);
+
             SyncTripToFirebaseJob::dispatch($trip->id)->onQueue('firebase');
 
             return $trip->fresh();
@@ -184,6 +189,19 @@ final class TripService
             $trip->payment_status = TripPaymentStatus::Paid;
             $trip->completed_at = now();
             $trip->save();
+        }
+    }
+
+    private function releaseDriverPresence(Trip $trip): void
+    {
+        $driverUser = $trip->driver;
+        if (! $driverUser) {
+            return;
+        }
+
+        $driver = $driverUser->driver;
+        if ($driver instanceof Driver) {
+            $this->presenceService->releaseAfterTrip($driver);
         }
     }
 

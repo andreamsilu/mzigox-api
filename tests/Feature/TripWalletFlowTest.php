@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\CommissionState;
+use App\Enums\DriverPresence;
 use App\Enums\DriverStatus;
 use App\Enums\TripPaymentStatus;
 use App\Enums\TripStatus;
@@ -51,6 +52,7 @@ class TripWalletFlowTest extends TestCase
         $driver = Driver::query()->create([
             'user_id' => $driverUser->id,
             'status' => DriverStatus::Approved,
+            'presence' => DriverPresence::Online,
             'is_online' => true,
             'last_latitude' => -6.7924,
             'last_longitude' => 39.2083,
