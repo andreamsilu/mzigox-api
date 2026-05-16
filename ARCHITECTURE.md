@@ -417,7 +417,8 @@ tests/Feature/         → OTP, wallet/trip, Sanctum flows
 
 | Resource | URL / command |
 |----------|----------------|
-| API docs | `/docs/api` (Scramble) |
+| API docs (Scramble / Elements) | `/docs/api` |
+| **Swagger UI** (same OpenAPI as Scramble) | `/docs/swagger` or `/swagger` → redirect |
 | OpenAPI JSON | `/docs/api.json` |
 | Health | `/up` |
 | Migrate + seed | `php artisan migrate --seed` |
